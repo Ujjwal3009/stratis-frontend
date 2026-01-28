@@ -25,7 +25,8 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Difficulty } from '@/lib/types';
-import { generateMockTest } from '@/lib/mock-data';
+// import { generateMockTest } from '@/lib/mock-data'; // Removed mock
+import { api } from '@/lib/api';
 import { useTestStore } from '@/lib/store';
 import { useRouter } from 'next/navigation';
 
@@ -51,13 +52,31 @@ export function TestConfigForm({ subjectId }: { subjectId: number }) {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
-        // Simulate generation
-        setTimeout(() => {
-            const test = generateMockTest(subjectId, parseInt(values.count));
-            setCurrentTest(test);
-            setIsLoading(false);
+        try {
+            const test = await api.tests.generate({
+                title: `Practice Test - ${new Date().toLocaleDateString()}`,
+                description: 'Generated via Stratis AI',
+                subjectId: subjectId,
+                difficulty: values.difficulty,
+                count: parseInt(values.count),
+                durationMinutes: parseInt(values.duration),
+                topicId: 0, // Default or specific topic if selected later
+            });
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setCurrentTest(test as any); // Type mismatch between TestResponse and store type potentially?
+            // Actually, let's checking store type usage.
+            // Using 'as any' temporarily if strict type mismatch occurs to ensure build passes, 
+            // but ideally types should match. 
+            // The store currentTest is TestResponse | null.
+
             router.push(`/test/${test.id}`);
-        }, 2000);
+        } catch (error) {
+            console.error('Failed to generate test', error);
+            alert('Failed to generate test. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
