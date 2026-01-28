@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuthStore } from '@/lib/store';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 const formSchema = z.object({
@@ -31,7 +31,7 @@ const formSchema = z.object({
 export function SignupForm() {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
-    const setAuth = useAuthStore((state) => state.setAuth);
+    const { register } = useAuth(); // Use register from AuthContext
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -45,22 +45,22 @@ export function SignupForm() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            // Mock successful registration
-            setAuth(
-                {
-                    id: Math.floor(Math.random() * 1000),
-                    username: values.username,
-                    email: values.email,
-                    fullName: values.fullName,
-                },
-                'mock_jwt_token'
-            );
+        try {
+            await register({
+                email: values.email,
+                username: values.username,
+                password: values.password,
+                fullName: values.fullName,
+            });
+
             toast.success('Account created successfully!');
-            router.push('/dashboard');
-        }, 1500);
+            // AuthContext.register might redirect to login, but if it doesn't we can push here or let context handle it.
+            // Current AuthContext register redirects to /login.
+        } catch (error: any) {
+            toast.error(error.message || 'Registration failed. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (

@@ -1,20 +1,54 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useAuthStore } from '@/lib/store';
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, History, Award, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
-    const user = useAuthStore((state) => state.user);
+    const { user, isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
 
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push('/login');
+        }
+    }, [isLoading, isAuthenticated, router]);
+
+    const [history, setHistory] = useState<import('@/lib/types').TestHistoryItem[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(true);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            api.tests.getHistory()
+                .then(data => setHistory(data))
+                .catch(err => console.error('Failed to fetch history', err))
+                .finally(() => setLoadingHistory(false));
+        }
+    }, [isAuthenticated]);
+
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    }
+
+    if (!isAuthenticated) return null;
+
+    // Calculate stats
+    const totalTests = history.length;
+    const completedTests = history.filter(h => h.status === 'COMPLETED');
+    const avgScore = completedTests.length > 0
+        ? Math.round(completedTests.reduce((acc, curr) => acc + (curr.score / curr.totalQuestions) * 100, 0) / completedTests.length)
+        : 0;
+    const totalQuestions = history.reduce((acc, curr) => acc + curr.totalQuestions, 0);
+
     const stats = [
-        { label: 'Tests Taken', value: '12', icon: History, color: 'text-blue-400' },
-        { label: 'Avg. Score', value: '78%', icon: Award, color: 'text-yellow-400' },
-        { label: 'Total Questions', value: '450', icon: BookOpen, color: 'text-green-400' },
+        { label: 'Tests Taken', value: totalTests.toString(), icon: History, color: 'text-blue-400' },
+        { label: 'Avg. Score', value: `${avgScore}%`, icon: Award, color: 'text-yellow-400' },
+        { label: 'Total Questions', value: totalQuestions.toString(), icon: BookOpen, color: 'text-green-400' },
     ];
 
     return (
@@ -25,7 +59,7 @@ export default function DashboardPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-10"
                 >
-                    <h1 className="text-4xl font-bold text-white mb-2">Welcome back, {user?.fullName || 'Aspirant'}</h1>
+                    <h1 className="text-4xl font-bold text-white mb-2">Welcome back, {user?.name || 'Aspirant'}</h1>
                     <p className="text-gray-400 text-lg">Your UPSC preparation progress is looking good!</p>
                 </motion.div>
 
@@ -71,22 +105,21 @@ export default function DashboardPage() {
                     <Card className="glassmorphism bg-background/40 border-white/5 p-8">
                         <h2 className="text-xl font-bold text-white mb-6">Recent Activity</h2>
                         <div className="space-y-4">
-                            {[
-                                { title: 'History Quiz', date: '2 hours ago', score: '18/20' },
-                                { title: 'Polity Mock', date: 'Yesterday', score: '45/50' },
-                                { title: 'Geography Test', date: '3 days ago', score: '22/30' },
-                            ].map((activity, i) => (
-                                <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                                    <div>
-                                        <div className="font-semibold text-white">{activity.title}</div>
-                                        <div className="text-xs text-gray-500">{activity.date}</div>
+                            {history.length === 0 ? (
+                                <p className="text-gray-500 text-center py-4">No recent activity. Start a test!</p>
+                            ) : (
+                                history.slice(0, 5).map((activity, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                                        <div>
+                                            <div className="font-semibold text-white">Test #{activity.testId}</div>
+                                            <div className="text-xs text-gray-500">{new Date(activity.startedAt).toLocaleDateString()}</div>
+                                        </div>
+                                        <div className="font-mono font-bold text-primary">
+                                            {activity.score}/{activity.totalQuestions}
+                                        </div>
                                     </div>
-                                    <div className="font-mono font-bold text-primary">{activity.score}</div>
-                                </div>
-                            ))}
-                            <Button variant="link" className="w-full text-gray-400 hover:text-white">
-                                View All Activity
-                            </Button>
+                                ))
+                            )}
                         </div>
                     </Card>
                 </div>

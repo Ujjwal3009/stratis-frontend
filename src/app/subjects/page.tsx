@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useState } from 'react';
 
 import { useTestStore } from '@/lib/store';
 import { SubjectSelector } from '@/components/subject/subject-selector';
@@ -10,6 +11,21 @@ import { motion } from 'framer-motion';
 export default function SubjectsPage() {
     const { selectedSubject, setSelectedSubject } = useTestStore();
     const router = useRouter();
+    const [subjects, setSubjects] = useState<import('@/lib/types').Subject[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch subjects from API
+        import('@/lib/api').then(({ api }) => {
+            api.subjects.list()
+                .then(data => setSubjects(data))
+                .catch(err => console.error('Failed to fetch subjects', err))
+                .finally(() => setIsLoading(false));
+        });
+    }, []);
+
+    // Fallback to mock if API fails or empty (optional, but requested to use DB)
+    // For now we just use what we get.
 
     return (
         <div className="min-h-screen gradient-bg pt-24 pb-20 px-4">
@@ -34,10 +50,15 @@ export default function SubjectsPage() {
                     <p className="text-gray-400 text-lg">Choose a subject to generate a customized practice test.</p>
                 </div>
 
-                <SubjectSelector
-                    selectedId={selectedSubject?.id}
-                    onSelect={(subject) => setSelectedSubject(subject)}
-                />
+                {isLoading ? (
+                    <div className="text-white text-center">Loading subjects...</div>
+                ) : (
+                    <SubjectSelector
+                        subjects={subjects}
+                        selectedId={selectedSubject?.id}
+                        onSelect={(subject) => setSelectedSubject(subject)}
+                    />
+                )}
 
                 <motion.div
                     initial={{ opacity: 0 }}

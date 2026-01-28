@@ -1,10 +1,22 @@
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE';
 
+export interface LoginRequest {
+  emailOrUsername: string;
+  password: string;
+}
+
 export interface User {
   id: number;
   username: string;
   email: string;
+  fullName?: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  username: string;
+  password: string;
   fullName?: string;
 }
 
@@ -70,6 +82,16 @@ export interface TestResult {
   unanswered: number;
   percentage: number;
   timeTakenMinutes: number;
+}
+
+export interface TestHistoryItem {
+  attemptId: number;
+  testId: number;
+  score: number;
+  totalQuestions: number;
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
+  startedAt: string;
+  completedAt: string;
 }
 
 export interface Subject {

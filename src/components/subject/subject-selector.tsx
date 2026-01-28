@@ -17,14 +17,15 @@ const iconMap: Record<string, any> = {
 };
 
 interface SubjectSelectorProps {
+    subjects: Subject[];
     onSelect: (subject: Subject) => void;
     selectedId?: number;
 }
 
-export function SubjectSelector({ onSelect, selectedId }: SubjectSelectorProps) {
+export function SubjectSelector({ subjects, onSelect, selectedId }: SubjectSelectorProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {MOCK_SUBJECTS.map((subject, i) => {
+            {subjects.map((subject, i) => {
                 const Icon = iconMap[subject.name] || Book;
                 const isSelected = selectedId === subject.id;
 

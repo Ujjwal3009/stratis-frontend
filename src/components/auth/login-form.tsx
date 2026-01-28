@@ -18,45 +18,44 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuthStore } from '@/lib/store';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+// import { api } from '@/lib/api'; // Not needed directly if useAuth handles it
 
 const formSchema = z.object({
-    email: z.string().email({ message: 'Please enter a valid email address.' }),
+    emailOrUsername: z.string().min(3, { message: 'Please enter a valid email or username.' }),
     password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
 export function LoginForm() {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingLocal, setIsLoadingLocal] = useState(false);
     const router = useRouter();
-    const setAuth = useAuthStore((state) => state.setAuth);
+    const { login } = useAuth();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            email: '',
+            emailOrUsername: '',
             password: '',
         },
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            // Mock successful login
-            setAuth(
-                {
-                    id: 1,
-                    username: 'upsc_aspirant',
-                    email: values.email,
-                    fullName: 'UPSC Aspirant',
-                },
-                'mock_jwt_token'
-            );
+        setIsLoadingLocal(true);
+        try {
+            await login({
+                emailOrUsername: values.emailOrUsername,
+                password: values.password,
+            });
             toast.success('Logged in successfully!');
-            router.push('/dashboard');
-        }, 1500);
+            // Navigation is handled in AuthContext or here. 
+            // AuthContext does push /dashboard.
+        } catch (error: any) {
+            // Error is already logged in context but we need to show toast
+            toast.error(error.message || 'Login failed. Please check your credentials.');
+        } finally {
+            setIsLoadingLocal(false);
+        }
     }
 
     return (
@@ -79,15 +78,15 @@ export function LoginForm() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             <FormField
                                 control={form.control}
-                                name="email"
+                                name="emailOrUsername"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel>Email or Username</FormLabel>
                                         <FormControl>
                                             <div className="relative">
                                                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                                 <Input
-                                                    placeholder="name@example.com"
+                                                    placeholder="name@example.com or username"
                                                     className="pl-10 bg-background/50 border-primary/10 focus:border-primary/30"
                                                     {...field}
                                                 />
@@ -121,9 +120,9 @@ export function LoginForm() {
                             <Button
                                 type="submit"
                                 className="w-full h-11 text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-all duration-300"
-                                disabled={isLoading}
+                                disabled={isLoadingLocal}
                             >
-                                {isLoading ? (
+                                {isLoadingLocal ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Logging in...
