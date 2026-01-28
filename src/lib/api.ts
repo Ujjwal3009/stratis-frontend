@@ -53,6 +53,9 @@ export const api = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+        start: (testId: number) => request<number>(`/tests/${testId}/start`, {
+            method: 'POST',
+        }),
         getById: (id: number) => request<TestResponse>(`/tests/${id}`),
         submit: (data: TestSubmission) => request<TestResult>('/tests/submit', {
             method: 'POST',

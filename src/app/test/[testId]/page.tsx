@@ -3,9 +3,10 @@
 import { useTestStore } from '@/lib/store';
 import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Send, Flag, LayoutDashboard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Send, Flag, LayoutDashboard, Loader2 } from 'lucide-react';
 import { QuestionCard } from '@/components/test/question-card';
 import { TestTimer } from '@/components/test/test-timer';
 import { toast } from 'sonner';
@@ -20,18 +21,94 @@ import {
 } from '@/components/ui/dialog';
 
 export default function TestPage() {
-    const { currentTest, answers, setAnswer } = useTestStore();
+    const { currentTest, answers, setAnswer, attemptId, setAttemptId } = useTestStore();
     const router = useRouter();
     const params = useParams();
     const [currentIdx, setCurrentIdx] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+    const [isStarting, setIsStarting] = useState(true);
+    const [startError, setStartError] = useState<string | null>(null);
+    const initializationStarted = useState(false); // Using state ref pattern to avoid strict mode double-call issues if needed, but simple boolean is enough here with checks
 
     useEffect(() => {
         if (!currentTest) {
             router.push('/subjects');
+            return;
         }
-    }, [currentTest, router]);
+
+        const initTest = async () => {
+            // If we already have an attempt ID for THIS test, don't restart.
+            // But simple check: if attemptId is null, start.
+            console.log('Validating test session...', { currentTestId: currentTest.id, attemptId });
+
+            if (attemptId) {
+                setIsStarting(false);
+                return;
+            }
+
+            try {
+                // Prevent duplicate calls if this effect runs twice rapidly?
+                // Actually, duplicate calls are okay, backend creates multiple attempts, we just use the last one.
+                // But better to be clean.
+                console.log('Starting new test attempt...');
+                const id = await api.tests.start(currentTest.id);
+                console.log('Test attempt started:', id);
+
+                if (!id) {
+                    throw new Error('Invalid attempt ID received from server');
+                }
+
+                setAttemptId(id);
+                setIsStarting(false);
+            } catch (err: any) {
+                console.error('Failed to start test attempt', err);
+                const errorMessage = err.message || 'Failed to initialize test session. Please check your connection.';
+                setStartError(errorMessage);
+                setIsStarting(false);
+                toast.error(errorMessage);
+            }
+        };
+
+        initTest();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentTest, router, setAttemptId]); // Removed attemptId from deps to avoid loop/re-trigger logic, handled inside
 
     if (!currentTest) return null;
+
+    if (isStarting) {
+        return (
+            <div className="min-h-screen gradient-bg flex items-center justify-center">
+                <div className="text-center text-white">
+                    <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" />
+                    <h2 className="text-xl font-bold">Starting Test...</h2>
+                    <p className="text-gray-400 mt-2">Initializing session</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (startError) {
+        return (
+            <div className="min-h-screen gradient-bg flex items-center justify-center">
+                <div className="text-center text-white max-w-md px-4">
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-8">
+                        <Flag className="w-10 h-10 text-red-400 mx-auto mb-4" />
+                        <h2 className="text-xl font-bold text-red-400 mb-2">Error Starting Test</h2>
+                        <p className="text-gray-300 mb-6">{startError}</p>
+                        <div className="flex justify-center gap-4">
+                            <Button onClick={() => router.push('/dashboard')} variant="ghost" className="hover:bg-white/5">
+                                Cancel
+                            </Button>
+                            <Button onClick={() => window.location.reload()} className="bg-red-500 hover:bg-red-600 text-white">
+                                Try Again
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const currentQuestion = currentTest.questions[currentIdx];
     const totalQuestions = currentTest.questions.length;
@@ -49,12 +126,52 @@ export default function TestPage() {
         }
     };
 
-    const handleSubmit = () => {
-        toast.success('Test submitted successfully!');
-        if (params?.testId) {
-            router.push(`/test/${params.testId}/result`);
-        } else {
-            router.push('/dashboard');
+    const handleSubmit = async () => {
+        console.log('Submit triggered. Attempt ID:', attemptId);
+
+        if (!attemptId) {
+            toast.error('No active test attempt found');
+            return;
+        }
+
+        if (isSubmitting) return;
+
+        try {
+            setIsSubmitting(true);
+            toast.loading('Submitting test...');
+
+            await api.tests.submit({
+                attemptId: attemptId,
+                answers: answers
+            });
+
+            toast.dismiss();
+            toast.success('Test submitted successfully!');
+
+            // Clear attempt ID as usage is done
+            setAttemptId(null);
+            setIsSubmitDialogOpen(false);
+
+            if (params?.testId) {
+                // Should redirect to result page eventually
+                router.push('/dashboard');
+            } else {
+                router.push('/dashboard');
+            }
+        } catch (error: any) {
+            toast.dismiss();
+            console.error('Failed to submit test', error);
+
+            // Handle session expiry/restart case
+            if (error.message?.includes('Attempt not found') || error.message?.includes('Test not found')) {
+                toast.error('Test session no longer valid (server restarted). Redirecting...');
+                setAttemptId(null); // Clear invalid ID
+                setTimeout(() => router.push('/dashboard'), 2000);
+                return;
+            }
+
+            toast.error('Failed to submit test. Please try again.');
+            setIsSubmitting(false);
         }
     };
 
@@ -119,7 +236,7 @@ export default function TestPage() {
                         </Button>
                     </div>
 
-                    <Dialog>
+                    <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
                         <DialogTrigger asChild>
                             <Button size="lg" className="hero-gradient rounded-xl h-12 px-8 font-bold">
                                 <Send className="w-4 h-4 mr-2" />
@@ -135,11 +252,26 @@ export default function TestPage() {
                                 </DialogDescription>
                             </DialogHeader>
                             <DialogFooter className="mt-6">
-                                <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setIsSubmitDialogOpen(false)}
+                                    className="text-gray-400 hover:text-white hover:bg-white/5"
+                                >
                                     Continue Testing
                                 </Button>
-                                <Button onClick={handleSubmit} className="hero-gradient rounded-xl px-8 font-bold">
-                                    Yes, Submit
+                                <Button
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                    className="hero-gradient rounded-xl px-8 font-bold"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        'Yes, Submit'
+                                    )}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
