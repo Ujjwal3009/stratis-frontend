@@ -43,17 +43,47 @@ export default function DashboardPage() {
     const avgScore = completedTests.length > 0
         ? Math.round(completedTests.reduce((acc, curr) => acc + (curr.score / curr.totalQuestions) * 100, 0) / completedTests.length)
         : 0;
-    const totalQuestions = history.reduce((acc, curr) => acc + curr.totalQuestions, 0);
+    const totalQuestions = completedTests.reduce((acc, curr) => acc + curr.totalQuestions, 0);
 
     const stats = [
-        { label: 'Tests Taken', value: totalTests.toString(), icon: History, color: 'text-blue-400' },
+        { label: 'Tests Completed', value: completedTests.length.toString(), icon: History, color: 'text-blue-400' },
         { label: 'Avg. Score', value: `${avgScore}%`, icon: Award, color: 'text-yellow-400' },
         { label: 'Total Questions', value: totalQuestions.toString(), icon: BookOpen, color: 'text-green-400' },
     ];
 
     return (
-        <div className="min-h-screen gradient-bg pt-20 px-4 pb-10">
-            <div className="container mx-auto max-w-6xl">
+        <div className="min-h-screen gradient-bg pb-10">
+            {/* Header */}
+            <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-background/50 backdrop-blur-md h-16">
+                <div className="container mx-auto px-4 h-full flex items-center justify-between max-w-6xl">
+                    <div className="flex items-center space-x-2 cursor-pointer" onClick={() => router.push('/')}>
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                            <BookOpen className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                            UPSC AI
+                        </span>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                        <span className="text-sm text-gray-400 hidden sm:block">Hi, {user?.name}</span>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            onClick={() => {
+                                // useAuth logout if available, or manual
+                                localStorage.removeItem('upsc_auth_token');
+                                localStorage.removeItem('upsc_user');
+                                window.location.href = '/';
+                            }}
+                        >
+                            Logout
+                        </Button>
+                    </div>
+                </div>
+            </header>
+
+            <div className="container mx-auto max-w-6xl pt-24 px-4">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -109,13 +139,42 @@ export default function DashboardPage() {
                                 <p className="text-gray-500 text-center py-4">No recent activity. Start a test!</p>
                             ) : (
                                 history.slice(0, 5).map((activity, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                                        <div>
-                                            <div className="font-semibold text-white">Test #{activity.testId}</div>
-                                            <div className="text-xs text-gray-500">{new Date(activity.startedAt).toLocaleDateString()}</div>
+                                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                <History className="w-5 h-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold text-white">Test #{activity.testId}</div>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-xs text-gray-500">{new Date(activity.startedAt).toLocaleDateString()}</span>
+                                                    <span className="text-[10px] text-gray-600">•</span>
+                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activity.status === 'COMPLETED'
+                                                        ? 'bg-green-500/10 text-green-400'
+                                                        : 'bg-yellow-500/10 text-yellow-400'
+                                                        }`}>
+                                                        {activity.status}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="font-mono font-bold text-primary">
-                                            {activity.score}/{activity.totalQuestions}
+                                        <div className="text-right">
+                                            <div className="font-mono font-bold text-primary">
+                                                {activity.status === 'COMPLETED' ? `${activity.score}/${activity.totalQuestions}` : '--'}
+                                            </div>
+                                            {activity.status === 'IN_PROGRESS' && (
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    className="h-auto p-0 text-primary hover:text-primary/80 text-xs"
+                                                    onClick={() => {
+                                                        // logic to resume test could go here if we fetch test details
+                                                        router.push(`/subjects`);
+                                                    }}
+                                                >
+                                                    Resume
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 ))

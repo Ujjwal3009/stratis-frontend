@@ -3,9 +3,26 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, Brain, Clock, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BookOpen, Brain, Clock, ShieldCheck, LogOut, LayoutDashboard } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getUser, removeAuthToken, removeUser, User } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
+    const [user, setUser] = useState<User | null>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        setUser(getUser());
+    }, []);
+
+    const handleLogout = () => {
+        removeAuthToken();
+        removeUser();
+        setUser(null);
+        router.refresh();
+    };
+
     return (
         <div className="min-h-screen gradient-bg selection:bg-primary/30">
             {/* Navigation */}
@@ -20,14 +37,36 @@ export default function LandingPage() {
                         </span>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Link href="/login">
-                            <Button variant="ghost" className="text-gray-300 hover:text-white">Sign In</Button>
-                        </Link>
-                        <Link href="/signup">
-                            <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 transition-all hover:scale-105 active:scale-95">
-                                Get Started
-                            </Button>
-                        </Link>
+                        {user ? (
+                            <>
+                                <span className="text-sm text-gray-400 hidden md:block">Hi, {user.name}</span>
+                                <Link href="/dashboard">
+                                    <Button variant="ghost" className="text-gray-300 hover:text-white">
+                                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                                        Dashboard
+                                    </Button>
+                                </Link>
+                                <Button
+                                    onClick={handleLogout}
+                                    variant="ghost"
+                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                >
+                                    <LogOut className="w-4 h-4 mr-2" />
+                                    Logout
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Link href="/login">
+                                    <Button variant="ghost" className="text-gray-300 hover:text-white">Sign In</Button>
+                                </Link>
+                                <Link href="/signup">
+                                    <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 transition-all hover:scale-105 active:scale-95">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </nav>

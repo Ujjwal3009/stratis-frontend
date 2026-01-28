@@ -2,7 +2,7 @@
 
 import { useTestStore } from '@/lib/store';
 import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ export default function TestPage() {
     const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
     const [isStarting, setIsStarting] = useState(true);
     const [startError, setStartError] = useState<string | null>(null);
-    const initializationStarted = useState(false); // Using state ref pattern to avoid strict mode double-call issues if needed, but simple boolean is enough here with checks
+    const initializationRef = useRef(false);
 
     useEffect(() => {
         if (!currentTest) {
@@ -38,30 +38,20 @@ export default function TestPage() {
         }
 
         const initTest = async () => {
-            // If we already have an attempt ID for THIS test, don't restart.
-            // But simple check: if attemptId is null, start.
-            console.log('Validating test session...', { currentTestId: currentTest.id, attemptId });
-
-            if (attemptId) {
+            if (initializationRef.current || attemptId) {
                 setIsStarting(false);
                 return;
             }
 
+            initializationRef.current = true;
             try {
-                // Prevent duplicate calls if this effect runs twice rapidly?
-                // Actually, duplicate calls are okay, backend creates multiple attempts, we just use the last one.
-                // But better to be clean.
                 console.log('Starting new test attempt...');
                 const id = await api.tests.start(currentTest.id);
                 console.log('Test attempt started:', id);
-
-                if (!id) {
-                    throw new Error('Invalid attempt ID received from server');
-                }
-
                 setAttemptId(id);
                 setIsStarting(false);
             } catch (err: any) {
+                initializationRef.current = false; // Allow retry
                 console.error('Failed to start test attempt', err);
                 const errorMessage = err.message || 'Failed to initialize test session. Please check your connection.';
                 setStartError(errorMessage);
@@ -70,7 +60,11 @@ export default function TestPage() {
             }
         };
 
-        initTest();
+        if (!attemptId) {
+            initTest();
+        } else {
+            setIsStarting(false);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentTest, router, setAttemptId]); // Removed attemptId from deps to avoid loop/re-trigger logic, handled inside
 
