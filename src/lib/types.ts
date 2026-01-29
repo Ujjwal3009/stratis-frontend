@@ -28,6 +28,7 @@ export interface AuthResponse {
 }
 
 export interface QuestionOption {
+  id: number;
   text: string;
   isCorrect: boolean;
   order: number;
@@ -68,9 +69,23 @@ export interface TestResponse {
   questions: Question[];
 }
 
+export interface Answer {
+  questionId: number;
+  selectedOptionId: number;
+  timeSpentSeconds: number;
+  selectionChangeCount?: number;
+  hoverCount?: number;
+}
+
+export interface AnswerSubmission {
+  questionId: number;
+  selectedOptionId: number | null;
+  timeSpentSeconds: number;
+}
+
 export interface TestSubmission {
   attemptId: number;
-  answers: Record<number, number>; // questionId -> selectedOptionIndex
+  answers: AnswerSubmission[];
 }
 
 export interface TestResult {
@@ -98,4 +113,52 @@ export interface Subject {
   id: number;
   name: string;
   description?: string;
+}
+
+export interface TopicAnalysis {
+  topicName: string;
+  correct: number;
+  total: number;
+  accuracy: number;
+  avgTimeSpentSeconds: number;
+  status: 'MASTERED' | 'NEED_PRACTICE' | 'WEAK';
+}
+
+export interface StrengthWeakness {
+  point: string;
+  strategy: string;
+}
+
+export interface BehaviouralMetrics {
+  accuracyPercentage: number | null;
+  attemptRatio: number | null;
+  negativeMarks: number | null;
+  firstInstinctAccuracy: number | null;
+  eliminationEfficiency: number | null;
+  impulsiveErrorCount: number | null;
+  overthinkingErrorCount: number | null;
+  guessProbability: number | null;
+  cognitiveBreakdown: Record<string, any> | null;
+  fatigueCurve: Record<string, any> | null;
+  riskAppetiteScore: number | null;
+  confidenceIndex: number | null;
+  consistencyIndex: number | null;
+}
+
+export interface TestAnalysis {
+  attemptId: number;
+  testId: number;
+  overallScore: number;
+  totalQuestions: number;
+  correctCount: number;
+  wrongCount: number;
+  unansweredCount: number;
+  accuracyPercentage: number;
+  totalTimeSpentSeconds: number;
+  topicPerformances: TopicAnalysis[];
+  mistakeTypeCounts: Record<string, number>;
+  aiDiagnosticSummary: string;
+  synthesizedStudyNotes: string;
+  strengthWeaknessPairs: StrengthWeakness[];
+  behaviouralMetrics?: BehaviouralMetrics;
 }

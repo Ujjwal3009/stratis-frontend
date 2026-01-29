@@ -62,6 +62,10 @@ export const api = {
             body: JSON.stringify(data),
         }),
         getHistory: () => request<import('./types').TestHistoryItem[]>('/tests/history'),
+        getAnalysis: (attemptId: number) => request<import('./types').TestAnalysis>(`/tests/attempts/${attemptId}/analysis`),
+        createRemedial: (attemptId: number) => request<TestResponse>(`/tests/attempts/${attemptId}/remedial`, {
+            method: 'POST',
+        }),
     },
     subjects: {
         list: () => request<Subject[]>('/subjects'),

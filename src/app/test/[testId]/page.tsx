@@ -66,7 +66,49 @@ export default function TestPage() {
             setIsStarting(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentTest, router, setAttemptId]); // Removed attemptId from deps to avoid loop/re-trigger logic, handled inside
+    }, [currentTest, router, setAttemptId]);
+
+    const [timeSpent, setTimeSpent] = useState<Record<number, number>>({});
+    const [telemetry, setTelemetry] = useState<Record<number, { changes: number; hovers: number }>>({});
+
+    const handleHover = (qId: number) => {
+        setTelemetry(prev => ({
+            ...prev,
+            [qId]: {
+                ...prev[qId],
+                hovers: (prev[qId]?.hovers || 0) + 1,
+                changes: prev[qId]?.changes || 0
+            }
+        }));
+    };
+
+    const handleAnswerSelect = (qId: number, idx: number) => {
+        setAnswer(qId, idx);
+        setTelemetry(prev => ({
+            ...prev,
+            [qId]: {
+                ...prev[qId],
+                changes: (prev[qId]?.changes || 0) + 1,
+                hovers: prev[qId]?.hovers || 0
+            }
+        }));
+    };
+
+    useEffect(() => {
+        if (isStarting || isSubmitting || !currentTest) return;
+
+        const interval = setInterval(() => {
+            const qId = currentTest.questions[currentIdx]?.id;
+            if (qId) {
+                setTimeSpent(prev => ({
+                    ...prev,
+                    [qId]: (prev[qId] || 0) + 1
+                }));
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [currentIdx, isStarting, isSubmitting, currentTest]);
 
     if (!currentTest) return null;
 
@@ -134,9 +176,21 @@ export default function TestPage() {
             setIsSubmitting(true);
             toast.loading('Submitting test...');
 
+            const submissionAnswers = currentTest.questions.map(q => {
+                const selectedIdx = answers[q.id];
+                const selectedOptionId = selectedIdx !== undefined ? q.options[selectedIdx].id : null;
+                return {
+                    questionId: q.id,
+                    selectedOptionId,
+                    timeSpentSeconds: timeSpent[q.id] || 0,
+                    selectionChangeCount: telemetry[q.id]?.changes || 0,
+                    hoverCount: telemetry[q.id]?.hovers || 0
+                };
+            });
+
             await api.tests.submit({
                 attemptId: attemptId,
-                answers: answers
+                answers: submissionAnswers
             });
 
             toast.dismiss();
@@ -147,8 +201,7 @@ export default function TestPage() {
             setIsSubmitDialogOpen(false);
 
             if (params?.testId) {
-                // Should redirect to result page eventually
-                router.push('/dashboard');
+                router.push(`/test/${params.testId}/result?attemptId=${attemptId}`);
             } else {
                 router.push('/dashboard');
             }
@@ -202,7 +255,8 @@ export default function TestPage() {
                 <QuestionCard
                     question={currentQuestion}
                     selectedOptionIndex={answers[currentQuestion.id]}
-                    onSelect={(idx) => setAnswer(currentQuestion.id, idx)}
+                    onSelect={(idx) => handleAnswerSelect(currentQuestion.id, idx)}
+                    onHover={() => handleHover(currentQuestion.id)}
                     questionNumber={currentIdx + 1}
                 />
 

@@ -162,15 +162,21 @@ export default function DashboardPage() {
                                             <div className="font-mono font-bold text-primary">
                                                 {activity.status === 'COMPLETED' ? `${activity.score}/${activity.totalQuestions}` : '--'}
                                             </div>
-                                            {activity.status === 'IN_PROGRESS' && (
+                                            {activity.status === 'COMPLETED' ? (
                                                 <Button
                                                     variant="link"
                                                     size="sm"
                                                     className="h-auto p-0 text-primary hover:text-primary/80 text-xs"
-                                                    onClick={() => {
-                                                        // logic to resume test could go here if we fetch test details
-                                                        router.push(`/subjects`);
-                                                    }}
+                                                    onClick={() => router.push(`/test/${activity.testId}/result?attemptId=${activity.attemptId}`)}
+                                                >
+                                                    View Analysis
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
+                                                    className="h-auto p-0 text-primary hover:text-primary/80 text-xs"
+                                                    onClick={() => router.push(`/subjects`)}
                                                 >
                                                     Resume
                                                 </Button>

@@ -13,9 +13,10 @@ interface QuestionCardProps {
     selectedOptionIndex?: number;
     onSelect: (index: number) => void;
     questionNumber: number;
+    onHover?: () => void;
 }
 
-export function QuestionCard({ question, selectedOptionIndex, onSelect, questionNumber }: QuestionCardProps) {
+export function QuestionCard({ question, selectedOptionIndex, onSelect, questionNumber, onHover }: QuestionCardProps) {
     return (
         <AnimatePresence mode="wait">
             <motion.div
@@ -53,6 +54,7 @@ export function QuestionCard({ question, selectedOptionIndex, onSelect, question
                                     />
                                     <Label
                                         htmlFor={`option-${index}`}
+                                        onMouseEnter={() => onHover?.()}
                                         className={cn(
                                             "flex items-center w-full p-5 rounded-2xl border-2 transition-all cursor-pointer group",
                                             selectedOptionIndex === index
