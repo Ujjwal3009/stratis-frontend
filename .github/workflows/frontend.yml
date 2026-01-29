@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: upsc-frontend
 
     steps:
       - uses: actions/checkout@v4
