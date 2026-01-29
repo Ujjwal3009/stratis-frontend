@@ -14,6 +14,7 @@ Refactor and extend the system into a scalable, cost-optimized
 Question Bank-first + Expert Behaviour Analytics architecture.
 
 IMPORTANT:
+
 - Do NOT redesign from scratch.
 - Extend modularly.
 - AI must NOT be used per test in real time.
@@ -62,12 +63,12 @@ Tasks:
 
 2. explanation_json for PYQ:
    {
-     "correct_reason": Explanation,
-     "why_A_wrong": null,
-     "why_B_wrong": null,
-     "why_C_wrong": null,
-     "core_concept_summary": null,
-     "trap_insight": null
+   "correct_reason": Explanation,
+   "why_A_wrong": null,
+   "why_B_wrong": null,
+   "why_C_wrong": null,
+   "core_concept_summary": null,
+   "trap_insight": null
    }
 
 3. created_source = "PYQ"
@@ -92,13 +93,13 @@ Modify TestGenerationService:
    - exclude attempted
 
 2. If PYQ >= required:
-      Serve PYQ only.
+   Serve PYQ only.
 
 3. If insufficient:
-      Fetch AI-generated unseen questions.
+   Fetch AI-generated unseen questions.
 
 4. If still insufficient:
-      Trigger async InventoryRefillService.
+   Trigger async InventoryRefillService.
 
 5. Remove AI generation from request-response flow.
 
@@ -109,12 +110,12 @@ PART 2 — INVENTORY REFILL SERVICE
 Scheduled job:
 
 For each subject + topic + difficulty:
-   If total AI-generated questions < target_count:
-      Generate batch (20–40)
-      Generate structured explanation_json
-      Check duplicate via normalized_hash
-      Check fuzzy similarity (>85% reject)
-      Store as created_source = "AI"
+If total AI-generated questions < target_count:
+Generate batch (20–40)
+Generate structured explanation_json
+Check duplicate via normalized_hash
+Check fuzzy similarity (>85% reject)
+Store as created_source = "AI"
 
 AI used ONLY here.
 
@@ -181,14 +182,14 @@ PART 6 — COST-OPTIMIZED REPORT
 Send only structured summary to AI:
 
 {
- accuracy,
- impulsive_errors,
- overthinking_errors,
- elimination_score,
- weak_topics,
- cognitive_breakdown,
- fatigue_drop,
- risk_score
+accuracy,
+impulsive_errors,
+overthinking_errors,
+elimination_score,
+weak_topics,
+cognitive_breakdown,
+fatigue_drop,
+risk_score
 }
 
 AI returns max 200-word strategy.

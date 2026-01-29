@@ -1,6 +1,6 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-@plugin "tailwindcss-animate";
+@plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -114,7 +114,9 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 }
 
@@ -126,8 +128,13 @@
 }
 
 .gradient-bg {
-  background: radial-gradient(circle at top left, rgba(124, 58, 237, 0.15), transparent),
-              radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.15), transparent);
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.15), transparent),
+    radial-gradient(
+      circle at bottom right,
+      rgba(236, 72, 153, 0.15),
+      transparent
+    );
 }
 
 .hero-gradient {
