@@ -1,6 +1,6 @@
 import { getAuthToken } from './auth';
 
-const BASE_URL = 'http://localhost:8080'; // Configure this via env var in real app
+const BASE_URL = 'http://localhost:8080/api/v1'; // Configure this via env var in real app
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 

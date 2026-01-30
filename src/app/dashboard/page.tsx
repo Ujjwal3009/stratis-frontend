@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,20 +26,11 @@ export default function DashboardPage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  const [history, setHistory] = useState<
-    import('@/lib/types').TestHistoryItem[]
-  >([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      api.tests
-        .getHistory()
-        .then((data) => setHistory(data))
-        .catch((err) => console.error('Failed to fetch history', err))
-        .finally(() => setLoadingHistory(false));
-    }
-  }, [isAuthenticated]);
+  const { data: history = [], isLoading: loadingHistory } = useQuery({
+    queryKey: ['test-history'],
+    queryFn: () => api.tests.getHistory(),
+    enabled: isAuthenticated,
+  });
 
   if (isLoading) {
     return (

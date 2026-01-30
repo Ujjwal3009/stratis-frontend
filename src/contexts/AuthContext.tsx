@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (data: LoginRequest) => {
     try {
       setIsLoading(true);
-      const response = await api.post<AuthResponse>('/api/auth/login', data);
+      const response = await api.post<AuthResponse>('/auth/login', data);
 
       const { accessToken, user: userData } = response;
       // Map API user to auth user
@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = async (data: RegisterRequest) => {
     try {
       setIsLoading(true);
-      await api.post<AuthResponse>('/api/auth/register', data);
+      await api.post<AuthResponse>('/auth/register', data);
       // Automatically login after register? Or redirect to login?
       // For now, let's just redirect to login
       router.push('/login');
