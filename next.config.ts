@@ -1,4 +1,4 @@
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
@@ -9,8 +9,8 @@ export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
-  org: "upsc-ai",
-  project: "upsc-frontend",
+  org: 'upsc-ai',
+  project: 'upsc-frontend',
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
@@ -23,7 +23,7 @@ export default withSentryConfig(nextConfig, {
 
   // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
   // (Note: This will increase your server load as well as your hosting bill)
-  tunnelRoute: "/monitoring",
+  tunnelRoute: '/monitoring',
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,

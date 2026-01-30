@@ -45,10 +45,20 @@ export const MOCK_QUESTIONS: Question[] = [
     explanation:
       'The Government of India Act 1919 introduced dyarchy in the provinces by dividing provincial subjects into "transferred" and "reserved".',
     options: [
-      { text: 'Indian Councils Act 1892', isCorrect: false, order: 1 },
-      { text: 'Indian Councils Act 1909', isCorrect: false, order: 2 },
-      { text: 'Government of India Act 1919', isCorrect: true, order: 3 },
-      { text: 'Government of India Act 1935', isCorrect: false, order: 4 },
+      { id: 1, text: 'Indian Councils Act 1892', isCorrect: false, order: 1 },
+      { id: 2, text: 'Indian Councils Act 1909', isCorrect: false, order: 2 },
+      {
+        id: 3,
+        text: 'Government of India Act 1919',
+        isCorrect: true,
+        order: 3,
+      },
+      {
+        id: 4,
+        text: 'Government of India Act 1935',
+        isCorrect: false,
+        order: 4,
+      },
     ],
   },
   {
@@ -60,10 +70,10 @@ export const MOCK_QUESTIONS: Question[] = [
     explanation:
       'The Battle of Plassey took place on 23 June 1757 between the British East India Company led by Robert Clive and the Nawab of Bengal, Siraj-ud-Daulah.',
     options: [
-      { text: '1757', isCorrect: true, order: 1 },
-      { text: '1764', isCorrect: false, order: 2 },
-      { text: '1857', isCorrect: false, order: 3 },
-      { text: '1761', isCorrect: false, order: 4 },
+      { id: 5, text: '1757', isCorrect: true, order: 1 },
+      { id: 6, text: '1764', isCorrect: false, order: 2 },
+      { id: 7, text: '1857', isCorrect: false, order: 3 },
+      { id: 8, text: '1761', isCorrect: false, order: 4 },
     ],
   },
   {
@@ -75,10 +85,10 @@ export const MOCK_QUESTIONS: Question[] = [
     explanation:
       'Venus is considered the "Twin of the Earth" because its size and shape are very much similar to those of the earth.',
     options: [
-      { text: 'Mars', isCorrect: false, order: 1 },
-      { text: 'Venus', isCorrect: true, order: 2 },
-      { text: 'Jupiter', isCorrect: false, order: 3 },
-      { text: 'Saturn', isCorrect: false, order: 4 },
+      { id: 9, text: 'Mars', isCorrect: false, order: 1 },
+      { id: 10, text: 'Venus', isCorrect: true, order: 2 },
+      { id: 11, text: 'Jupiter', isCorrect: false, order: 3 },
+      { id: 12, text: 'Saturn', isCorrect: false, order: 4 },
     ],
   },
 ];
