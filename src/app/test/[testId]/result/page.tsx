@@ -747,7 +747,7 @@ export default function ResultAnalysisPage() {
               </CardHeader>
               <CardContent>
                 <Button
-                  className="text-primary h-12 w-full rounded-xl bg-white font-bold hover:bg-white/90"
+                  className="!text-primary h-12 w-full rounded-xl bg-white font-bold hover:bg-white/90"
                   onClick={handleRemedialTest}
                   disabled={isGeneratingRemedial}
                 >

@@ -250,9 +250,9 @@ export default function TestPage() {
   };
 
   return (
-    <div className="gradient-bg min-h-screen px-4 pt-24 pb-20">
+    <div className="gradient-bg relative min-h-screen px-4 pt-24 pb-20">
       {/* Test Header */}
-      <div className="bg-background/60 fixed top-0 right-0 left-0 z-40 h-20 border-b border-white/5 backdrop-blur-xl">
+      <div className="bg-background/60 fixed top-0 right-0 left-0 z-50 h-20 border-b border-white/5 backdrop-blur-xl">
         <div className="container mx-auto flex h-full items-center justify-between px-4">
           <div className="flex items-center space-x-6">
             <h1 className="hidden text-xl font-bold text-white md:block">

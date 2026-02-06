@@ -13,8 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { BookOpen, History, Award, PlayCircle } from 'lucide-react';
+import { BookOpen, History, Award, PlayCircle, BarChart2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { PerformanceRadar } from '@/components/dashboard/performance-radar';
+import { PerformanceSummary } from '@/components/dashboard/performance-summary';
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -29,6 +31,12 @@ export default function DashboardPage() {
   const { data: history = [], isLoading: loadingHistory } = useQuery({
     queryKey: ['test-history'],
     queryFn: () => api.tests.getHistory(),
+    enabled: isAuthenticated,
+  });
+
+  const { data: overall, isLoading: loadingAnalysis } = useQuery({
+    queryKey: ['overall-analysis'],
+    queryFn: () => api.analysis.getOverall(),
     enabled: isAuthenticated,
   });
 
@@ -157,6 +165,32 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* Global Performance Analysis */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-10"
+        >
+          <div className="mb-6 flex items-center space-x-2">
+            <BarChart2 className="text-primary h-6 w-6" />
+            <h2 className="text-2xl font-bold text-white">
+              AI Diagnostic Insights
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-1">
+              <PerformanceRadar data={overall?.subjectAccuracy || {}} />
+            </div>
+            <div className="lg:col-span-2">
+              <PerformanceSummary
+                strengths={overall?.strengths || []}
+                weaknesses={overall?.weaknesses || []}
+              />
+            </div>
+          </div>
+        </motion.div>
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <Card className="glassmorphism bg-primary/5 border-primary/20 flex flex-col items-center p-8 text-center">
@@ -236,7 +270,7 @@ export default function DashboardPage() {
                             )
                           }
                         >
-                          View Analysis
+                          Review Test
                         </Button>
                       ) : (
                         <Button

@@ -7,6 +7,21 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Flag, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface QuestionCardProps {
   question: Question;
@@ -23,6 +38,24 @@ export function QuestionCard({
   questionNumber,
   onHover,
 }: QuestionCardProps) {
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportText, setReportText] = useState('');
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  const handleReport = async () => {
+    if (!reportText.trim()) return;
+    try {
+      setIsReporting(true);
+      await api.feedback.reportQuestion(question.id, reportText);
+      toast.success('Issue reported successfully. Thank you!');
+      setIsReportOpen(false);
+      setReportText('');
+    } catch (err) {
+      toast.error('Failed to report issue.');
+    } finally {
+      setIsReporting(false);
+    }
+  };
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -47,9 +80,51 @@ export function QuestionCard({
               </span>
             </div>
 
-            <h2 className="mb-10 text-2xl leading-relaxed font-semibold text-white">
-              {question.questionText}
-            </h2>
+            <div className="mb-8 flex items-start justify-between">
+              <h2 className="text-2xl leading-relaxed font-semibold text-white">
+                {question.questionText}
+              </h2>
+              <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-600 hover:text-red-400"
+                  >
+                    <Flag className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glassmorphism border-white/10 bg-gray-900 text-white">
+                  <DialogHeader>
+                    <DialogTitle>Report an Issue</DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      Found a typo or a wrong answer? Let us know.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Textarea
+                    placeholder="Describe the issue..."
+                    value={reportText}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setReportText(e.target.value)
+                    }
+                    className="min-h-[100px] border-white/10 bg-white/5 text-white"
+                  />
+                  <DialogFooter>
+                    <Button
+                      onClick={handleReport}
+                      disabled={isReporting || !reportText.trim()}
+                      className="bg-red-500 hover:bg-red-600"
+                    >
+                      {isReporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Submit Report'
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
 
             <RadioGroup
               value={selectedOptionIndex?.toString()}

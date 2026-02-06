@@ -93,4 +93,33 @@ export const api = {
   subjects: {
     list: () => request<Subject[]>('/subjects'),
   },
+  pdfs: {
+    list: () => request<import('./types').PdfDocument[]>('/pdfs'),
+    chat: (id: number, query: string) =>
+      request<{ answer: string }>(`/pdfs/${id}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({ query }),
+      }),
+  },
+  feedback: {
+    reportQuestion: (questionId: number, description: string) =>
+      request<{ message: string }>('/feedback/report-question', {
+        method: 'POST',
+        body: JSON.stringify({ questionId, description }),
+      }),
+  },
+  admin: {
+    getStats: () => request<any>('/admin/stats'),
+    getReports: () => request<any[]>('/admin/reports'),
+    getConfigs: () => request<any[]>('/admin/configs'),
+    resolveReport: (id: number, comment: string) =>
+      request<{ message: string }>(`/admin/reports/${id}/resolve`, {
+        method: 'POST',
+        body: JSON.stringify({ comment }),
+      }),
+  },
+  analysis: {
+    getOverall: () =>
+      request<import('./types').GlobalPerformance>('/analysis/overall'),
+  },
 };

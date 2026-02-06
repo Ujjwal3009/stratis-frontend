@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { Toaster } from 'sonner';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -22,6 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <Toaster position="top-center" richColors />
         <ErrorBoundary>{children}</ErrorBoundary>
       </AuthProvider>
     </QueryClientProvider>

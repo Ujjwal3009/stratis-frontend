@@ -115,6 +115,17 @@ export interface Subject {
   description?: string;
 }
 
+export interface PdfDocument {
+  id: number;
+  filename: string;
+  originalFilename: string;
+  fileSize: number;
+  documentType: 'PYQ' | 'BOOK' | 'CURRENT_AFFAIRS';
+  status: 'UPLOADED' | 'PROCESSING' | 'PROCESSED' | 'FAILED';
+  uploadDate: string;
+  description?: string;
+}
+
 export interface TopicAnalysis {
   topicName: string;
   correct: number;
@@ -161,4 +172,27 @@ export interface TestAnalysis {
   synthesizedStudyNotes: string;
   strengthWeaknessPairs: StrengthWeakness[];
   behaviouralMetrics?: BehaviouralMetrics;
+}
+
+export interface GlobalPerformance {
+  subjectAccuracy: Record<string, number>;
+  topicAccuracy: Record<string, number>;
+  strengths: StrengthWeaknessMetric[];
+  weaknesses: StrengthWeaknessMetric[];
+  behaviouralTrends: BehaviouralTrends;
+}
+
+export interface StrengthWeaknessMetric {
+  name: string;
+  accuracy: number;
+  type: 'SUBJECT' | 'TOPIC';
+}
+
+export interface BehaviouralTrends {
+  avgFirstInstinctAccuracy: number;
+  avgEliminationEfficiency: number;
+  totalNegativeMarks: number;
+  totalImpulsiveErrors: number;
+  totalOverthinkingErrors: number;
+  avgConfidenceIndex: number;
 }
